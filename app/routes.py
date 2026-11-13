@@ -32,5 +32,17 @@ def add_inventory_item():
   if not isinstance(price, (int, float)) or isinstance(price, bool) or price < 0:
     return jsonify({"error": "Price must be a non-negative number."}), 400
   
-  inventory_items.append(data)
-  return jsonify(data), 201
+  new_id = max(
+    (item["id"] for item in inventory_items),
+    default=0
+  ) + 1
+  
+  new_item = {
+    "id": new_id,
+    "name": name,
+    "quantity": quantity,
+    "price": price
+  }
+  
+  inventory_items.append(new_item)
+  return jsonify(new_item), 201
