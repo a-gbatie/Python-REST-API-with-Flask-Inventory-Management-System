@@ -22,5 +22,10 @@ def add_inventory_item():
   
   name = name.strip()
   
+  quantity = data.get("quantity")
+  
+  if type(quantity) is not int or quantity < 0:
+    return jsonify({"error": "Quantity must be a non-negative integer."}), 400
+  
   inventory_items.append(data)
   return jsonify(data), 201
