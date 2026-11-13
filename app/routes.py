@@ -1,8 +1,26 @@
 # Blueprint allows organization of Flask routes in a separate file outside of app.py
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
+from app.inventory import inventory_items
 
 inventory_bp = Blueprint("inventory", __name__) # create Blueprint named inventory
 
 @inventory_bp.route("/inventory", methods=["GET"]) # registers a route to HTTP GET /inventory
 def get_inventory():
-  return jsonify([]), 200
+  return jsonify(inventory_items), 200
+
+@inventory_bp.route("/inventory", methods=["POST"])
+def add_inventory_item():
+  data = request.get_json(silent=True)
+  
+  if not isinstance(data, dict):
+    return jsonify({"error": "A JSON object is required."}), 400
+  
+  name = data.get("name")
+  
+  if not isinstance(name, str) or not name.strip():
+    return jsonify({"error": "Product name must be a non-empty string."}), 400
+  
+  name = name.strip()
+  
+  inventory_items.append(data)
+  return jsonify(data), 201

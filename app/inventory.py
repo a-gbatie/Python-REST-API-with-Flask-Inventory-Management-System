@@ -1,0 +1,1 @@
+inventory_items = [] # empty list to hold dictionaries of products
