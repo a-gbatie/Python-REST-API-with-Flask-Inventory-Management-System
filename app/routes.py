@@ -27,5 +27,10 @@ def add_inventory_item():
   if type(quantity) is not int or quantity < 0:
     return jsonify({"error": "Quantity must be a non-negative integer."}), 400
   
+  price = data.get("price")
+  
+  if not isinstance(price, (int, float)) or isinstance(price, bool) or price < 0:
+    return jsonify({"error": "Price must be a non-negative number."}), 400
+  
   inventory_items.append(data)
   return jsonify(data), 201
