@@ -8,6 +8,14 @@ inventory_bp = Blueprint("inventory", __name__) # create Blueprint named invento
 def get_inventory():
   return jsonify(inventory_items), 200
 
+@inventory_bp.route("/inventory/<int:item_id>", methods=["GET"])
+def get_inventory_item(item_id):
+  for item in inventory_items:
+    if item["id"] == item_id:
+      return jsonify(item), 200
+    
+  return jsonify({"error": "Inventory item not found."}), 404
+
 @inventory_bp.route("/inventory", methods=["POST"])
 def add_inventory_item():
   data = request.get_json(silent=True)
@@ -46,14 +54,6 @@ def add_inventory_item():
   
   inventory_items.append(new_item)
   return jsonify(new_item), 201
-
-@inventory_bp.route("/inventory/<int:item_id>", methods=["GET"])
-def get_inventory_item(item_id):
-  for item in inventory_items:
-    if item["id"] == item_id:
-      return jsonify(item), 200
-    
-  return jsonify({"error": "Inventory item not found."}), 404
 
 @inventory_bp.route("/inventory/<int:item_id>", methods=["PATCH"])
 def update_inventory_item(item_id):
