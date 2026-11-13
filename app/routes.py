@@ -88,3 +88,13 @@ def update_inventory_item(item_id):
   
   return jsonify(item), 200
 
+@inventory_bp.route("/inventory/<int:item_id>", methods=["DELETE"])
+def delete_inventory_item(item_id):
+  for item in inventory_items:
+    if item["id"] == item_id:
+      inventory_items.remove(item)
+      return jsonify({"message": "Item successfully deleted."})
+  
+  return jsonify({"error": "Inventory item not found."}), 404
+  
+  
