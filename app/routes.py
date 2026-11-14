@@ -1,6 +1,7 @@
 # Blueprint allows organization of Flask routes in a separate file outside of app.py
 from flask import Blueprint, jsonify, request
 from app.inventory import inventory_items
+from app.external_api import fetch_product_by_barcode, search_products_by_name
 
 inventory_bp = Blueprint("inventory", __name__) # create Blueprint named inventory
 
@@ -97,4 +98,66 @@ def delete_inventory_item(item_id):
   
   return jsonify({"error": "Inventory item not found."}), 404
   
-  
+
+@inventory_bp.route("/products/barcode/<barcode>", methods=["GET"])
+def get_product_by_barcode(barcode):
+  product = fetch_product_by_barcode(barcode)
+
+  if product is None:
+    return jsonify({"error": "Product not found or lookup failed."}), 404
+
+  return jsonify(product), 200
+
+
+@inventory_bp.route("/products/search", methods=["GET"])
+def search_products():
+  name = request.args.get("name", "").strip()
+
+  if not name:
+    return jsonify({"error": "Product name is required."}), 400
+
+  products = search_products_by_name(name)
+
+  return jsonify(products), 200
+
+
+@inventory_bp.route("/inventory/barcode", methods=["POST"])
+def add_inventory_by_barcode():
+  data = request.get_json(silent=True)
+
+  if not isinstance(data, dict):
+    return jsonify({"error": "A JSON object is required."}), 400
+
+  barcode = str(data.get("barcode", "")).strip()
+  quantity = data.get("quantity")
+  price = data.get("price")
+
+  if not barcode:
+    return jsonify({"error": "Barcode is required."}), 400
+
+  if type(quantity) is not int or quantity < 0:
+    return jsonify({"error": "Quantity must be a non-negative integer."}), 400
+
+  if not isinstance(price, (int, float)) or isinstance(price, bool) or price < 0:
+    return jsonify({"error": "Price must be a non-negative number."}), 400
+
+  product = fetch_product_by_barcode(barcode)
+
+  if product is None:
+    return jsonify({"error": "Product not found or lookup failed."}), 404
+
+  new_id = max((item["id"] for item in inventory_items), default=0) + 1
+
+  new_item = {
+    "id": new_id,
+    "name": product["name"],
+    "quantity": quantity,
+    "price": price,
+    "barcode": barcode,
+    "brand": product["brand"],
+    "ingredients": product["ingredients"]
+  }
+
+  inventory_items.append(new_item)
+
+  return jsonify(new_item), 201
